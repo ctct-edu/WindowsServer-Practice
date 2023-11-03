@@ -107,7 +107,7 @@ lab:
      このとき、確認メッセージが表示されるので、「Y」(Yes) を選択して操作を進めます
   
      ```powershell
-     Move-ADDirectoryServerOperationMasterRole -Identity "DC2-CTCT" -OperationMasterRole PDCEmulator, RIDMaster, InfrastructureMaster, SchemaMaster, DomainNamingMaster -Confirm:$true
+     Move-ADDirectoryServerOperationMasterRole -Identity DC2-CTCT -OperationMasterRole 0,1,2,3,4
      ```
   
   1. 再度FSMOロールの保持者を確認して、変更が正しく反映されているか確認します。
