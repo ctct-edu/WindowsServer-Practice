@@ -20,7 +20,7 @@ lab:
 
 
 
-## 予想時間：20分
+## 予想時間：30分
 
 
 
@@ -86,7 +86,7 @@ lab:
 
 1. 「server connections：」には「quit」と入力し、エンターキーを押します。
 
-1. 「fsmo maintenance：」には「 seize schema master」と入力し、エンターキーを押します。
+1. 「fsmo maintenance：」には「seize schema master」と入力し、エンターキーを押します。
 
 1. 「サーバー"DC2-CTCT.ctct.comのschema役割..."」のポップアップが表示されます。「はい」を選択します。
 
