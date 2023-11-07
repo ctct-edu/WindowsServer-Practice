@@ -15,9 +15,3 @@
 フォルダ内に各演習のラボマニュアルが掲載されています。
 
 ラボマニュアルに従って演習を実施してください。
-
-
-
-## 演習の始め方
-
-まず初めに「[Lab00_01_Preparation](https://github.com/ctct-edu/az-104-lab/blob/main/LabManual/LAB_00-Preparation.md)」を参照し、演習用アカウントの準備を開始してください。
