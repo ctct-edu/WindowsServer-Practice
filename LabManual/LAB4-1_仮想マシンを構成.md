@@ -3,7 +3,7 @@ lab:
     title: 'Windows ServerのHyper-V 仮想化'
 ---
 
-# ラボ4  - 仮想マシンを構成
+# ラボ4-1  - 仮想マシンを構成
 
 ## 目標
 

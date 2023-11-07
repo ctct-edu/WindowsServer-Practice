@@ -41,8 +41,6 @@ lab：
 
 1. サーバーマネージャーの「ツール」メニューから「Active Directory ユーザーとコンピューター」を選択します。
 
-   ![image-20231103210015533](C:\Users\otokita\AppData\Roaming\Typora\typora-user-images\image-20231103210015533.png)
-
 1. 「Active Directory ユーザーとコンピューター」ウィンドウが開きます。
 
 1. 「Active Directory ユーザーとコンピューター」ウィンドウの左側のペインで、`ctct.com` ドメインを右クリックします。

@@ -3,7 +3,7 @@ lab:
     title: 'Windows ServerのHyper-V 仮想化'
 ---
 
-# ラボ4  - Hyper-V レプリカを構成
+# ラボ4-2  - Hyper-V レプリカを構成
 
 ## 目標
 
