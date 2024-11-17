@@ -3,178 +3,173 @@ lab:
     title: 'ファイルサーバーの高度な管理'
 ---
 
-# ラボ3-3  - DFS名前空間を構成
+# ラボ3-3  - DFS名前空間を構成（目安：20分）
+
+## 演習で使用するマシン
+
+以下のマシンを使用します。
+
+| マシン名           | 用途/目的            |
+| ------------------ | -------------------- |
+| DomainController_1 | ドメイン環境         |
+| FileServer_1       | ファイルサーバー構成 |
+| FileServer_2       | ファイルサーバー構成 |
+
+
 
 ## 目標
 
 このラボでは次の内容を学習します。
 
-- タスク 1：演習環境へアクセス
-- タスク 2：FileSV2でDFS名前空間をインストールする
-- タスク 3：FileSV3でDFS名前空間をインストールする
-- タスク 4：FileSV2で共有フォルダーを構成する
-- タスク 5：FileSV3で共有フォルダーを構成する
-- タスク 6：FileSV2でDFS名前空間を構成する
-- タスク 7：FileSV3でDFS名前空間を構成する
-
-
-
-## 予想時間：30  分
+- タスク １：FileServer_2をセットアップする
+- タスク 2：DFS名前空間を構成する
+- タスク 3：DFSにフォルダを追加する
 
 
 
 ## 手順
 
-#### タスク 1：演習環境へアクセス
+#### タスク １：FileServer_2をセットアップする
 
-このタスクでは、使用する演習環境へアクセスします。
+この手順はFileServer_1で実施してください。
 
-1. HostVM2にサインインします。
+1. スタートメニューからPowerShellを起動し、以下のコマンドを入力します。
 
-1. デスクトップにあるHyper-Vマネージャーをクリックします。
-
-1. Hyper-Vマネージャー画面で「FileSV2」「FileSV3」をクリックし、アクセスします。
+   ```powershell
+   # Install DFS Namespaces and DFS Replication features
+   Import-Module ServerManager
+   
+   Write-Host "Installing DFS Namespaces and DFS Replication..." -ForegroundColor Green
+   Install-WindowsFeature -Name FS-DFS-Namespace, FS-DFS-Replication -IncludeManagementTools
+   
+   Write-Host "DFS Namespaces and DFS Replication installation complete!" -ForegroundColor Green
+   ```
 
    
 
-#### タスク 2：FileSV2でDFS名前空間をインストールする
+2. さらに以下のコマンドを入力します。
 
-この手順はFileSV2で実施してください。
+   ```powershell
+   # 部署名リスト
+   $departments = @("HR", "IT", "Finance", "Sales", "Marketing")
+   
+   # 基本のフォルダパス
+   $basePath = "C:\SharedFolders"
+   
+   # ベースフォルダーが存在しない場合は作成
+   if (!(Test-Path -Path $basePath)) {
+       Write-Host "Creating base folder at $basePath..." -ForegroundColor Green
+       New-Item -ItemType Directory -Path $basePath
+   }
+   
+   # 各部署のフォルダー作成と共有設定
+   foreach ($dept in $departments) {
+       $deptPath = Join-Path -Path $basePath -ChildPath $dept
+       $shareName = "$dept"  # 共有名を部署名と同じに設定
+   
+       # フォルダー作成
+       if (!(Test-Path -Path $deptPath)) {
+           Write-Host "Creating folder for department: $dept" -ForegroundColor Green
+           New-Item -ItemType Directory -Path $deptPath
+   
+           # サンプルデータを作成
+           $sampleFile = Join-Path -Path $deptPath -ChildPath "SampleData_$dept.txt"
+           "This is a sample file for the $dept department." | Out-File -FilePath $sampleFile
+       } else {
+           Write-Host "Folder for department $dept already exists. Skipping creation..." -ForegroundColor Yellow
+       }
+   
+       # 共有設定 (SMB共有)
+       if (!(Get-SmbShare | Where-Object Name -eq $shareName)) {
+           Write-Host "Sharing folder for department: $dept" -ForegroundColor Green
+           New-SmbShare -Name $shareName -Path $deptPath -FullAccess "Everyone"
+   
+           # NTFS権限設定 (Everyoneにフルコントロールを設定)
+           $acl = Get-Acl $deptPath
+           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+           $acl.AddAccessRule($accessRule)
+           Set-Acl -Path $deptPath -AclObject $acl
+       } else {
+           Write-Host "Folder $dept is already shared. Skipping share creation..." -ForegroundColor Yellow
+       }
+   
+       Write-Host "Setup complete for department: $dept" -ForegroundColor Green
+   }
+   
+   Write-Host "All department folders have been created and shared!" -ForegroundColor Green
+   ```
 
-1. サーバーマネージャを開き、「役割と機能の追加」を選択します。
+   
 
-2. インストールの種類の選択で「役割ベースまたは機能ベースのインストール」を選択し、「次 >」をクリックします。
+3. `\\FILESERVER2\`のUNCパスにアクセスすると、複数の共有フォルダーが作成されます。
 
-3. サーバーの選択でFilesSV2を選択し、「次 >」をクリックします。
+   
 
-4. 「役割の選択」画面にて、「ファイルサービスと記憶域サービス」を展開します。
+   
 
-5. 「ファイルサーバー」と「DFS名前空間」にチェックを入れ、「次 >」をクリックします。
+#### タスク 2：DFS名前空間を構成する
 
-6. 「機能の選択」画面では、追加で必要な機能を選択して「次 >」をクリックします。
-
-7. 「確認」画面で設定を確認し、問題なければ「インストール」をクリックします。
-
-   > インストールの完了を待たずに、タスク3へスキップしてください。
-
-
-
-#### タスク 3：FileSV3でDFS名前空間をインストールする
-
-この手順はFileSV3で実施してください。
-
-1. サーバーマネージャを開き、「役割と機能の追加」を選択します。
-
-2. インストールの種類の選択で「役割ベースまたは機能ベースのインストール」を選択し、「次 >」をクリックします。
-
-3. サーバーの選択でFilesSV2を選択し、「次 >」をクリックします。
-
-4. 「役割の選択」画面にて、「ファイルサービスと記憶域サービス」を展開します。
-
-5. 「ファイルサーバー」と「DFS名前空間」にチェックを入れ、「次 >」をクリックします。
-
-6. 「機能の選択」画面では、追加で必要な機能を選択して「次 >」をクリックします。
-
-7. 「確認」画面で設定を確認し、問題なければ「インストール」をクリックします。
-
-8. インストールが完了したら、「閉じる」をクリックしてウィザードを終了します。
-
-   > インストールの完了を待たずに、タスク4へスキップしてください。
-
-
-
-#### タスク 4：FileSV2で共有フォルダーを構成する
-
-この手順はFileSV2で実施してください。（この手順はFileSV1で実施した手順と同様です)
-
-1. 「スタート」メニューを開き、「サーバーマネージャー」を選択して起動します。
-
-2. サーバーマネージャーの左側のナビゲーションペインから「ファイルサービスと記憶域サービス」をクリックし、更に「共有」を選択します。
-
-3. 右側の「タスク」メニューから「ファイル共有を作成するには、新しい共有...」を選択します。
-
-4. 「新しい共有ウィザード」が開きます。
-
-5. 「共有の種類の選択」画面で「SMB の共有 -簡易」を選択し、「次 >」をクリックします。
-
-6. 「共有の場所」画面で、「ボリュームで選択」をEドライブを指定し、「次 >」をクリックします。
-
-7. 「共有名」画面で、共有名に「開発部」と入力し、「次 >」をクリックします。
-
-8. 「他の設定」画面で、デフォルトのまま「次 >」をクリックします。
-
-9. 「アクセス許可の設定」画面で、デフォルトのまま「次 >」をクリックします。
-
-10. 「確認」画面で設定を確認し、問題なければ「作成」をクリックします。
-
-11. 共有の作成が完了したら、「閉じる」をクリックしてウィザードを終了します。
-
-12. サーバーマネージャーの「ファイルサービスと記憶域サービス」>「共有」のセクションを確認し、「開発部」という名前の共有がリストにあることを確認します。
-
-
-
-#### タスク 5：FileSV3で共有フォルダーを構成する
-
-この手順はFileSV3で実施してください。（この手順はFileSV1で実施した手順と同様です)
-
-1. 「スタート」メニューを開き、「サーバーマネージャー」を選択して起動します。
-
-2. サーバーマネージャーの左側のナビゲーションペインから「ファイルサービスと記憶域サービス」をクリックし、更に「共有」を選択します。
-
-3. 右側の「タスク」メニューから「ファイル共有を作成するには、新しい共有...」を選択します。
-
-4. 「新しい共有ウィザード」が開きます。
-
-5. 「共有の種類の選択」画面で「SMB の共有 -簡易」を選択し、「次 >」をクリックします。
-
-6. 「共有の場所」画面で、「ボリュームで選択」をEドライブを指定し、「次 >」をクリックします。
-
-7. 「共有名」画面で、共有名に「営業部」と入力し、「次 >」をクリックします。
-
-8. 「他の設定」画面で、デフォルトのまま「次 >」をクリックします。
-
-9. 「アクセス許可の設定」画面で、デフォルトのまま「次 >」をクリックします。
-
-10. 「確認」画面で設定を確認し、問題なければ「作成」をクリックします。
-
-11. 共有の作成が完了したら、「閉じる」をクリックしてウィザードを終了します。
-
-12. サーバーマネージャーの「ファイルサービスと記憶域サービス」>「共有」のセクションを確認し、「営業部」という名前の共有がリストにあることを確認します。
-
-
-
-#### タスク 6：FileSV2でDFS名前空間を構成する
-
-この手順はFileSV2で実施してください。
+この手順はFileServer_1で実施してください。
 
 1. サーバーマネージャのツールから 「DFSの管理」 を選択して起動します。
 2. DFSの管理画面の左側ツリーにある「名前空間」を右クリックし、「新しい名前空間」をクリックします。
-3. 選択するオブジェクト名欄に「filesv2」と入力し、「次 >」をクリックします。
-4. 名前空間の設定で名前空間を「data」とし、「次 >」をクリックします。
-5. 名前空欄の種類では、「ドメインベースの名前空欄のプレビュー」を選択し、「次 >」をクリックします。
-6. 確認で設定を確認し、「作成」をクリックして名前空間を作成し、作成が成功した後に「閉じる」をクリックします。
-7. DFSの管理画面で「名前空間」をクリックします。
-8. 作成した「`\\ctc.local\data`」名前空間を右クリックし、「新しいフォルダ」を選択します。
-9. フォルダ名に「Dev」と入力し、フォルダーターゲットの「追加」をクリックします。
-10. ターゲット名に「`\\filesv2\開発部`」と入力し、「OK」をクリックします。
-11. 「スタート」メニューを開き、「エクスプローラー」を選択して起動します。
-12. アドレスバーに「`\\ctc.local\data\`」と入力し、「Dev」フォルダがあることを確認します。
+3. 選択するオブジェクト名欄に「FileServer1」と入力し、「次 >」をクリックします。
+4. 認証画面が表示されます。ドメイン管理者のユーザーとパスワードを入力します。
+5. 名前空間の設定で名前空間を「Public」とし、「次 >」をクリックします。
+6. 名前空欄の種類では、「ドメインベースの名前空欄のプレビュー」を選択し、「次 >」をクリックします。
+7. 確認で設定を確認し、「作成」をクリックして名前空間を作成し、作成が成功した後に「閉じる」をクリックします。
+8. DFSの管理画面で「名前空間」をクリックします。
+9. 作成した「`\\ctct.local\Public`」名前空間を右クリックし、「名前空間サーバーを追加」をクリックします。
+10. 「参照」をクリックし、さらに「選択するオブジェクト名欄に「FileServer2」と入力し、「OK」をクリックします。
+11. 認証画面が表示されます。ドメイン管理者のユーザーとパスワードを入力します。
+12. 「名前空間サーバーを追加」画面で「OK」をクリックします。
 
 
 
+#### タスク 3：DFSにフォルダを追加する
 
-#### タスク 7：FileSV3でDFS名前空間を構成する
+この手順はFileServer_1で実施してください。
 
-この手順はFileSV3で実施してください。
+1. 作成した「`\\ctct.local\Public`」名前空間を右クリックし、「新しいフォルダー」を選択します。
 
-1. サーバーマネージャのツールから 「DFSの管理」 を選択して起動します。
-2. DFSの管理画面の左側ツリーにある「名前空間」を右クリックし、「名前空間の表示」をクリックします。
-3. 名前空間から「`\\ctc.local\data`」を選択し、「次 >」をクリックします。
-4. 表示された「`\\ctc.local\data`」名前空間を右クリックし、「新しいフォルダ」を選択します。
-5. フォルダ名に「Sales」と入力し、フォルダーターゲットの「追加」をクリックします。
-6. ターゲット名に「`\\filesv3\営業部`」と入力し、「OK」をクリックします。
-7. 「スタート」メニューを開き、「エクスプローラー」を選択して起動します。
-8. アドレスバーに「`\\ctc.local\data\`」と入力し、「Sales」フォルダがあることを確認します。
+2. フォルダ名に「共有フォルダー」と入力し、フォルダーターゲットの「追加」をクリックします。
+
+3. ターゲット名に「`\\FILESERVER1\共有フォルダー`」と入力し、「OK」をクリックします。
+
+4. 「スタート」メニューを開き、「エクスプローラー」を選択して起動します。
+
+5. アドレスバーに「`\\ctct.local\public\`」と入力し、「共有フォルダー」があることを確認します。
+
+6. スタートメニューからPowerShellを起動し、以下のコマンドを入力します。
+
+   ```powershell
+   # DFS 名前空間のベースパス
+   $namespacePath = "\\ctct.local\public"
+   
+   # DFS フォルダーとターゲットフォルダーのマッピング
+   $folderMappings = @{
+       "Finance"   = "\\FILESERVER2\Finance"
+       "HR"        = "\\FILESERVER2\HR"
+       "IT"        = "\\FILESERVER2\IT"
+       "Marketing" = "\\FILESERVER2\Marketing"
+       "Sales"     = "\\FILESERVER2\Sales"
+   }
+   
+   # DFS フォルダーの作成とターゲットのリンク設定
+   foreach ($folder in $folderMappings.Keys) {
+       $targetPath = $folderMappings[$folder]
+       $folderPath = Join-Path -Path $namespacePath -ChildPath $folder
+   
+       Write-Host "Adding DFS folder: $folderPath with target: $targetPath" -ForegroundColor Green
+   
+       # DFS 名前空間フォルダーを作成
+       New-DfsnFolder -Path $folderPath -TargetPath $targetPath
+   }
+   
+   Write-Host "DFS namespace setup complete!" -ForegroundColor Green
+   ```
+
+7. アドレスバーに「`\\ctct.local\public\`」と入力し、複数のフォルダーがあることを確認します。
 
 
 
