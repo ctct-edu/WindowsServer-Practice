@@ -21,17 +21,33 @@ lab:
 
 このラボでは次の内容を学習します。
 
-- タスク 1：DHCPの役割をインストールする
+- タスク１：各ファイルサーバーをドメイン参加させる
 
-- タスク 2：DHCPの構成設定をする
+- タスク２：DHCPの役割をインストールする
 
-- タスク 3：DHCPの取得確認
+- タスク３：DHCPの構成設定をする
+
+- タスク４：DHCPの取得確認
 
 
 
 ## 手順
 
-#### タスク 1：DHCPの役割をインストールする
+#### タスク １：各ファイルサーバーをドメイン参加させる
+
+FileServer_1、FileServer_2で、それぞれ実施します。
+
+1. スタートメニューからPowerShellを起動し、以下のコマンドを入力します。
+
+   ```powershell
+   Add-Computer -DomainName "ctct.local" -Credential (New-Object System.Management.Automation.PSCredential("ctct\administrator", (ConvertTo-SecureString "Pa55w.rd1234" -AsPlainText -Force))) -Restart
+   ```
+
+2. 実行後、自動で再起動されます。再びサインインしてください。
+
+
+
+#### タスク２：DHCPの役割をインストールする
 
 この手順はDHCPServerで実施してください。
 
@@ -66,7 +82,7 @@ lab:
     
 
 
-#### タスク 2：DHCPの構成設定をする
+#### タスク３：DHCPの構成設定をする
 
 この手順はDHCPServerで実施してください。
 
@@ -104,7 +120,7 @@ lab:
     
 
 
-#### タスク 3：DHCPの取得確認
+#### タスク４：DHCPの取得確認
 
 この手順はWindowsPC_1で実施してください。
 
