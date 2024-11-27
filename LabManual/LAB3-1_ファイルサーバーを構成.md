@@ -104,7 +104,7 @@ FileServer_1、FileServer_2で、それぞれ実施します。
 
 
 
-#### タスク 4：共有フォルダーにクォータの設定をする
+#### タスク 4：共有フォルダにクォータの設定をする
 
 この手順はFileServer_1で実施してください。
 
@@ -124,13 +124,13 @@ FileServer_1、FileServer_2で、それぞれ実施します。
 1. スタートメニューからPowerShellを起動し、以下のコマンドを入力し、50MBのファイルを作成します。
 
    ```cmd
-   fsutil file createnew C:\Shares\共有フォルダー\testfile.dat 52428800
+   fsutil file createnew C:\Shares\共有フォルダ\testfile.dat 52428800
    ```
 
 2. さらに以下のコマンドを入力し、100MBのファイルを作成します。
 
    ```cmd
-    fsutil file createnew C:\Shares\共有フォルダー\testfile2.dat 104857600
+    fsutil file createnew C:\Shares\共有フォルダ\testfile2.dat 104857600
    ```
 
 3. 「エラー:  ディスクに十分な空き領域がありません。」と表示されれば、成功です。
