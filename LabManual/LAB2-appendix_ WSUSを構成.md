@@ -3,7 +3,7 @@ lab:
     title: 'Windows Server のネットワークサービス'
 ---
 
-# ラボ2-3  - WSUSを構成（目安：20分）
+# ラボ2-appendix  - WSUSを構成（目安：20分）
 
 ## 演習で使用するマシン
 
