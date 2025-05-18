@@ -9,11 +9,10 @@ lab:
 
 以下のマシンを使用します。
 
-| マシン名           | 用途/目的        |
-| ------------------ | ---------------- |
-| DomainController_1 | ドメイン認証用途 |
-| DHCPServer         | DHCPの設定       |
-| WindowsPC_1        | DHCPの配布先     |
+| マシン名    | 用途/目的    |
+| ----------- | ------------ |
+| DHCPServer  | DHCPの設定   |
+| WindowsPC_1 | DHCPの配布先 |
 
 
 
